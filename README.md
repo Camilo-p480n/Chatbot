@@ -41,11 +41,34 @@ src/
 ├── services/       # Lógica de negocio
 ├── db/            # Conexión a la base de datos
 └── app.js         # Configuración de Express
+
+
+services/
+│
+├ ai.service.js          → interpreta intención
+├ chat.service.js        → orquesta todo
+├ expense.service.js     → registrar gastos
+├ income.service.js      → registrar ingresos
+├ query.service.js       → consultas
+├ category.service.js    → categorías
+├ goal.service.js        → metas
+└ finance.service.js     → conversación financiera
 ```
 
-## Licencia
+## Funciona
+1. registro gasto y su consulta
+2. registro ingreso y su consulta
+3. resumen global (gastos totales, ingresos totales, balance)
+4. preguntar cualquier cosa sin salirse del tema de las finanzas
 
-ISC
 
 
+
+
+## Faltantes
+
+1. consultas por categoria tipo (cuabto gaste en transporte este mes, o listame los gastos de este mes x categoria)
+2. crear las metas(ya estan pero no reconoce el nombre de la meta )
+3. conectar con el frontend
+4. mensaje de bienvenida(hola soy pocky tu asistente financiero, que quieres hacer el dia de hoy?)  
 

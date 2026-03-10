@@ -1,25 +1,21 @@
 import { pool } from "../db/connection.js";
 import { detectCategory } from "./category.service.js";
 
-export const handleIncome = async (userId, data) => {
+export const handleIncome = async (user_id, data) => {
 
-  const { amount, description } = data;
+  const { amount, category, description } = data;
 
-  if (!amount) {
-    return { message: "No pude detectar el monto del ingreso" };
-  }
-
-  const categoryId = await detectCategory(userId, description, "income");
+  const categoryId = await detectCategory(category);
 
   await pool.query(
     `INSERT INTO transactions
     (user_id, category_id, type, amount, description, date)
     VALUES (?, ?, 'income', ?, ?, CURDATE())`,
-    [userId, categoryId || 7, amount, description]
+    [user_id, categoryId, amount, description]
   );
 
   return {
-    message: `Ingreso registrado: ${amount}`
+    message: "Ingreso registrado correctamente"
   };
 
 };

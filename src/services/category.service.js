@@ -1,26 +1,37 @@
 import { pool } from "../db/connection.js";
 
-export const detectCategory = async (userId, message, type) => {
+// buscar id de categoria por nombre
+export const detectCategory = async (categoryName) => {
 
-  const text = message.toLowerCase();
+  const name = String(categoryName).toLowerCase();
 
-  const [categories] = await pool.query(
-    `SELECT id, name 
+  const [rows] = await pool.query(
+    `SELECT id 
      FROM categories
-     WHERE type = ?
-     AND (user_id = ? OR user_id IS NULL)`,
-    [type, userId]
+     WHERE LOWER(name) = ?
+     LIMIT 1`,
+    [name]
   );
 
-  for (const category of categories) {
-
-    const categoryName = category.name.toLowerCase();
-
-    if (text.includes(categoryName)) {
-      return category.id;
-    }
-
+  // si existe la categoria devolver su id
+  if (rows.length > 0) {
+    return rows[0].id;
   }
 
-  return null;
+  // si no existe usar categoria "otros"
+  return 1;
+};
+
+
+// obtener categorias para darselas a la IA
+export const getCategories = async (type) => {
+
+  const [rows] = await pool.query(
+    `SELECT id,name
+     FROM categories
+     WHERE type = ?`,
+    [type]
+  );
+
+  return rows;
 };

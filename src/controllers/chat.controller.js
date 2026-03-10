@@ -1,24 +1,28 @@
-//este archivo se encarga de recibir las peticiones del cliente y 
-// enviar la respuesta correspondiente, utilizando los servicios definidos en chat.service.js
-
 import { processMessage } from "../services/chat.service.js";
 
 export const chat = async (req, res) => {
+
   try {
 
-    const { userId, message } = req.body;
+    // mensaje que envía el usuario
+    const { message, user_id } = req.body;
 
-    const response = await processMessage(userId, message);
+    // enviamos el mensaje al servicio principal
+    const response = await processMessage(message, user_id);
 
-    res.json(response);
+    // respondemos al usuario
+    res.json({
+      reply: response
+    });
 
   } catch (error) {
 
     console.error("ERROR CHAT:", error);
 
     res.status(500).json({
-      error: "Error procesando mensaje"
+      error: "Error procesando el mensaje"
     });
 
   }
+
 };

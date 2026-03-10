@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<!-- Título de la pestaña del navegador -->
+<title>PocketPal AI</title>
+
+<style>
+
+/* Estilo general del body */
+body{
+font-family: Arial;
+background:#f4f6f8;
+
+/* centra el chat en la pantalla */
+display:flex;
+justify-content:center;
+align-items:center;
+
+/* altura completa de la ventana */
+height:100vh;
+}
+
+/* contenedor principal del chat */
+.chat-container{
+
+/* ancho del chat */
+width:400px;
+
+/* alto del chat */
+height:600px;
+
+background:white;
+
+/* bordes redondeados */
+border-radius:10px;
+
+/* organiza los elementos en columna */
+display:flex;
+flex-direction:column;
+
+/* sombra del contenedor */
+box-shadow:0px 0px 10px rgba(0,0,0,0.1);
+}
+
+/* cabecera del chat */
+.chat-header{
+background:#2b7cff;
+color:white;
+padding:15px;
+text-align:center;
+font-weight:bold;
+}
+
+/* área donde aparecen los mensajes */
+.chat-messages{
+
+/* ocupa todo el espacio disponible */
+flex:1;
+
+padding:15px;
+
+/* permite hacer scroll cuando hay muchos mensajes */
+overflow-y:auto;
+}
+
+/* estilo base para los mensajes */
+.message{
+margin-bottom:10px;
+padding:10px;
+border-radius:8px;
+max-width:80%;
+}
+
+/* mensaje del usuario */
+.user{
+background:#2b7cff;
+color:white;
+
+/* lo alinea a la derecha */
+margin-left:auto;
+}
+
+/* mensaje del bot */
+.bot{
+background:#e5e5e5;
+}
+
+/* contenedor de la caja de texto */
+.chat-input{
+display:flex;
+border-top:1px solid #ddd;
+}
+
+/* input donde el usuario escribe */
+.chat-input input{
+
+/* ocupa todo el espacio */
+flex:1;
+
+border:none;
+padding:12px;
+
+/* quita el borde al hacer click */
+outline:none;
+}
+
+/* botón enviar */
+.chat-input button{
+background:#2b7cff;
+color:white;
+border:none;
+padding:12px 20px;
+cursor:pointer;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<!-- contenedor principal -->
+<div class="chat-container">
+
+<!-- cabecera del chatbot -->
+<div class="chat-header">
+PocketPal AI 💰
+</div>
+
+<!-- aquí se mostrarán todos los mensajes -->
+<div id="messages" class="chat-messages"></div>
+
+<!-- área donde el usuario escribe -->
+<div class="chat-input">
+
+<!-- campo de texto -->
+<input id="input" placeholder="Escribe un mensaje..." />
+
+<!-- botón que envía el mensaje -->
+<button onclick="sendMessage()">Enviar</button>
+
+</div>
+
+</div>
+
+<script>
+
+/* obtenemos el contenedor de mensajes */
+const messages = document.getElementById("messages");
+
+/* obtenemos el input */
+const input = document.getElementById("input");
+
+
+/*
+función para agregar mensajes al chat
+type = user o bot
+*/
+function addMessage(text, type){
+
+/* crear un div para el mensaje */
+const div = document.createElement("div");
+
+/* agregar clase base */
+div.classList.add("message");
+
+/* agregar tipo (user o bot) */
+div.classList.add(type);
+
+/* texto del mensaje */
+div.innerText = text;
+
+/* añadir al contenedor de mensajes */
+messages.appendChild(div);
+
+/* bajar scroll automáticamente */
+messages.scrollTop = messages.scrollHeight;
+
+}
+
+
+/*
+función que envía el mensaje al backend
+*/
+async function sendMessage(){
+
+/* obtener texto del input */
+const text = input.value;
+
+/* si está vacío no hace nada */
+if(!text) return;
+
+/* mostrar mensaje del usuario */
+addMessage(text,"user");
+
+/* limpiar input */
+input.value="";
+
+
+/*
+enviar mensaje al backend
+*/
+const response = await fetch("http://localhost:3001/chat",{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+/*
+datos que se envían al backend
+*/
+body: JSON.stringify({
+
+/* mensaje del usuario */
+message:text,
+
+/* id del usuario */
+user_id:10
+
+})
+
+});
+
+/* convertir respuesta a JSON */
+const data = await response.json();
+
+/* mostrar respuesta del bot */
+addMessage(data.message,"bot");
+
+}
+
+</script>
+
+</body>
+
+</html>

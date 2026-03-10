@@ -1,96 +1,81 @@
+import OpenAI from "openai";
+import dotenv from "dotenv";
+import { getCategories } from "./category.service.js";
+
+dotenv.config();
+
+// crear cliente de OpenAI usando tu API KEY
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
+});
+
 export const interpretMessage = async (message) => {
 
-  const text = message.toLowerCase();
+  // obtener categorias desde la base de datos
+  const expenseCategories = await getCategories("expense");
+  const incomeCategories = await getCategories("income");
 
-  // detectar monto
-  const amountMatch = text.match(/\d+/);
-  const amount = amountMatch ? Number(amountMatch[0]) : null;
+  // convertirlas en texto para que la IA las conozca
+  const expenseList = expenseCategories.map(c => c.name).join(", ");
+  const incomeList = incomeCategories.map(c => c.name).join(", ");
 
-  // -----------------------
-  // CONSULTAS
-  // -----------------------
+  const prompt = `
+Eres un asistente financiero.
 
-  if (
-    text.includes("cuanto") ||
-    text.includes("resumen") ||
-    text.includes("gaste este mes") ||
-    text.includes("cuanto gaste")
-  ) {
+Tu trabajo es analizar el mensaje del usuario y responder SOLO en JSON.
 
-    return {
-      type: "query"
-    };
+tambien cuando te hagan preguntas relacionadas con todo el tema de  finanzas personales, debes responder de forma conversacional, dando consejos, recomendaciones, explicaciones, etc. pero sin salirte del tema financiero.
 
-  }
+Tipos posibles:
+expense
+income
+query_expense
+query_income
+query_summary
+conversation
+goal_create
+goal_add
+goal_status
 
-  // -----------------------
-  // DETECTAR CATEGORIA
-  // -----------------------
 
-  let category = "otros";
+Categorias de gastos:
+${expenseList}
 
-  if (text.includes("comida") || text.includes("restaurante") || text.includes("almuerzo")) {
-    category = "comida";
-  }
+Categorias de ingresos:
+${incomeList}
 
-  if (text.includes("uber") || text.includes("taxi") || text.includes("transporte") || text.includes("gasolina")) {
-    category = "transporte";
-  }
+Ejemplo de respuestas:
 
-  if (text.includes("mercado") || text.includes("supermercado")) {
-    category = "mercado";
-  }
+{
+"type":"expense",
+"amount":20000,
+"category":"comida",
+"description":"almuerzo"
+}
 
-  if (text.includes("netflix") || text.includes("spotify")) {
-    category = "entretenimiento";
-  }
+{
+"type":"query_expense"
+}
 
-  // -----------------------
-  // GASTOS
-  // -----------------------
+{
+"type":"conversation"
+}
 
-  if (
-    text.includes("gast") ||
-    text.includes("pague") ||
-    text.includes("compr")
-  ) {
+Mensaje del usuario:
+${message}
+`;
 
-    return {
-      type: "expense",
-      amount,
-      category,
-      description: message
-    };
+  const completion = await openai.chat.completions.create({
+    model: "gpt-4o-mini",
+    messages: [{ role: "user", content: prompt }]
+  });
 
-  }
+  let response = completion.choices[0].message.content;
 
-  // -----------------------
-  // INGRESOS
-  // -----------------------
+  // limpiar posible markdown de la IA
+  response = response.replace(/```json/g, "").replace(/```/g, "").trim();
 
-  if (
-    text.includes("ingres") ||
-    text.includes("gan") ||
-    text.includes("recib") ||
-    text.includes("salario") ||
-    text.includes("pago")
-  ) {
-
-    return {
-      type: "income",
-      amount,
-      category,
-      description: message
-    };
-
-  }
-
-  // -----------------------
-  // NO ENTENDIDO
-  // -----------------------
-
-  return {
-    type: "unknown"
-  };
-
+  return JSON.parse(response);
 };
+
+console.log("✅ OpenAI client initialized");
